@@ -662,7 +662,7 @@ print("\nCombined Statistics:")
 print(statistics_df_combined)
 
 
-# In[29]:
+# In[36]:
 
 
 transactions_by_origin_combined = df_combined.groupby('origin_chain').agg(
@@ -672,12 +672,23 @@ transactions_by_origin_combined = df_combined.groupby('origin_chain').agg(
     median_amount=('amount', 'median')
 )
 
-transactions_by_origin_combined.reset_index(inplace=True)
-
+# Convert amounts to Ethereum
 transactions_by_origin_combined[['total_amount', 'average_amount', 'median_amount']] =     transactions_by_origin_combined[['total_amount', 'average_amount', 'median_amount']].applymap(to_eth).round(6)
 
+# Calculate totals for percentage calculations
+total_transactions = transactions_by_origin_combined['transaction_count'].sum()
+total_amount_sent = transactions_by_origin_combined['total_amount'].sum()
+
+# Add percentage columns
+transactions_by_origin_combined['transactions_pct'] = (transactions_by_origin_combined['transaction_count'] / total_transactions * 100).round(2).astype(str) + '%'
+transactions_by_origin_combined['amount_pct'] = (transactions_by_origin_combined['total_amount'] / total_amount_sent * 100).round(2).astype(str) + '%'
+
+# Reset index to make 'origin_chain' a column for display
+transactions_by_origin_combined.reset_index(inplace=True)
+
+# Print the table
 print("\nCombined Transactions by Origin Chain:")
-print(tabulate(transactions_by_origin_combined, headers='keys', tablefmt='pretty', showindex=False, colalign=('right', 'right', 'right', 'right', 'right')))
+print(tabulate(transactions_by_origin_combined, headers='keys', tablefmt='pretty', showindex=False, colalign=('right', 'right', 'right', 'right', 'right', 'right', 'right')))
 
 
 # In[30]:
