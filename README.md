@@ -954,31 +954,40 @@ transactions_by_origin_combined = df_combined.groupby('origin_chain').agg(
     median_amount=('amount', 'median')
 )
 
-transactions_by_origin_combined.reset_index(inplace=True)
-
+# Convert amounts to Ethereum
 transactions_by_origin_combined[['total_amount', 'average_amount', 'median_amount']] = \
     transactions_by_origin_combined[['total_amount', 'average_amount', 'median_amount']].applymap(to_eth).round(6)
 
-print("\nCombined Transactions by Origin Chain:")
-print(tabulate(transactions_by_origin_combined, headers='keys', tablefmt='pretty', showindex=False, colalign=('right', 'right', 'right', 'right', 'right')))
+# Calculate totals for percentage calculations
+total_transactions = transactions_by_origin_combined['transaction_count'].sum()
+total_amount_sent = transactions_by_origin_combined['total_amount'].sum()
 
+# Add percentage columns
+transactions_by_origin_combined['transactions_pct'] = (transactions_by_origin_combined['transaction_count'] / total_transactions * 100).round(2).astype(str) + '%'
+transactions_by_origin_combined['amount_pct'] = (transactions_by_origin_combined['total_amount'] / total_amount_sent * 100).round(2).astype(str) + '%'
+
+# Reset index to make 'origin_chain' a column for display
+transactions_by_origin_combined.reset_index(inplace=True)
+
+# Print the table
+print("\nCombined Transactions by Origin Chain:")
+print(tabulate(transactions_by_origin_combined, headers='keys', tablefmt='pretty', showindex=False, colalign=('right', 'right', 'right', 'right', 'right', 'right', 'right')))
 ```
 
     
     Combined Transactions by Origin Chain:
-    +--------------+-------------------+--------------+----------------+---------------+
-    | origin_chain | transaction_count | total_amount | average_amount | median_amount |
-    +--------------+-------------------+--------------+----------------+---------------+
-    |           10 |                 3 |     0.002271 |       0.000757 |       0.00033 |
-    |        42161 |               182 |     0.070712 |       0.000389 |      0.000327 |
-    |            1 |                 3 |     0.002321 |       0.000774 |      0.000322 |
-    |           10 |                37 |     0.015958 |       0.000431 |      0.000323 |
-    |          324 |                86 |     0.040651 |       0.000473 |      0.000327 |
-    |        42161 |                 1 |     0.000323 |       0.000323 |      0.000323 |
-    |        59144 |                21 |     0.010353 |       0.000493 |       0.00032 |
-    |         8453 |                82 |     0.034229 |       0.000417 |      0.000319 |
-    +--------------+-------------------+--------------+----------------+---------------+
+    +--------------+-------------------+--------------+----------------+---------------+------------------+------------+
+    | origin_chain | transaction_count | total_amount | average_amount | median_amount | transactions_pct | amount_pct |
+    +--------------+-------------------+--------------+----------------+---------------+------------------+------------+
+    |            1 |                 3 |     0.002321 |       0.000774 |      0.000322 |            0.72% |      1.31% |
+    |           10 |                40 |     0.018229 |       0.000456 |      0.000323 |            9.64% |     10.31% |
+    |          324 |                86 |     0.040651 |       0.000473 |      0.000327 |           20.72% |     22.99% |
+    |        42161 |               183 |     0.071035 |       0.000388 |      0.000327 |            44.1% |     40.17% |
+    |        59144 |                21 |     0.010353 |       0.000493 |       0.00032 |            5.06% |      5.86% |
+    |         8453 |                82 |     0.034229 |       0.000417 |      0.000319 |           19.76% |     19.36% |
+    +--------------+-------------------+--------------+----------------+---------------+------------------+------------+
     
+
 
 
 ```python
